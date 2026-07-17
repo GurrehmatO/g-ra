@@ -1,0 +1,24 @@
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+let client: SupabaseClient | null = null;
+
+export function getSupabaseAdmin(): SupabaseClient {
+  if (client) return client;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Set them in .env."
+    );
+  }
+
+  client = createClient(url, serviceKey, {
+    auth: { persistSession: false },
+  });
+
+  return client;
+}
+
+export const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET ?? "ticket-images";

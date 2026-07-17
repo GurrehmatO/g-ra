@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum TicketType {
+  STORY
+  BUG
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  SELECT
+  DATE
+}
+
+enum ProjectRole {
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  name         String?
+  passwordHash String
+  role         Role            @default(USER)
+  createdAt    DateTime        @default(now())
+  memberships  ProjectMember[]
+  createdTickets Ticket[]      @relation("TicketCreator")
+  assignedTickets Ticket[]     @relation("TicketAssignee")
+  comments     Comment[]
+  history      TicketHistory[]
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  key         String          @unique
+  description String?
+  createdById String
+  createdAt   DateTime        @default(now())
+  members     ProjectMember[]
+  statuses    Status[]
+  customFields CustomField[]
+  tickets     Ticket[]
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now())
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+model Status {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  color     String   @default("#64748b")
+  position  Int      @default(0)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tickets   Ticket[]
+
+  @@unique([projectId, name])
+}
+
+model CustomField {
+  id        String          @id @default(cuid())
+  projectId String
+  name      String
+  type      CustomFieldType @default(TEXT)
+  options   String?         // JSON array for SELECT type
+  position  Int             @default(0)
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  values    TicketValue[]
+
+  @@unique([projectId, name])
+}
+
+model Ticket {
+  id          String       @id @default(cuid())
+  projectId   String
+  type        TicketType   @default(STORY)
+  title       String
+  description String?
+  creatorId   String
+  assigneeId  String?
+  statusId    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator     User         @relation("TicketCreator", fields: [creatorId], references: [id])
+  assignee    User?        @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  status      Status       @relation(fields: [statusId], references: [id])
+  images      TicketImage[]
+  comments    Comment[]
+  customValues TicketValue[]
+  history     TicketHistory[]
+
+  @@index([projectId, statusId])
+  @@index([assigneeId])
+}
+
+model TicketValue {
+  id            String      @id @default(cuid())
+  ticketId      String
+  customFieldId String
+  value         String?
+  ticket        Ticket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, customFieldId])
+}
+
+model TicketImage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  url       String
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  ticketId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+}
+
+model TicketHistory {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  field     String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+}
