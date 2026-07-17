@@ -51,6 +51,7 @@ export async function GET(
     where: { id: ticket.id },
     include: {
       status: true,
+      project: { select: { key: true } },
       creator: { select: { id: true, name: true, email: true } },
       assignee: { select: { id: true, name: true, email: true } },
       images: { orderBy: { createdAt: "asc" } },
@@ -66,7 +67,13 @@ export async function GET(
     },
   });
 
-  return NextResponse.json({ ticket: full });
+  if (!full) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    ticket: { ...full, code: `${full.project.key}-${full.ticketNumber}` },
+  });
 }
 
 export async function PATCH(
@@ -227,6 +234,7 @@ export async function PATCH(
       where: { id: ticket.id },
       include: {
         status: true,
+        project: { select: { key: true } },
         creator: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
         customValues: { include: { customField: true } },
@@ -235,5 +243,11 @@ export async function PATCH(
     });
   });
 
-  return NextResponse.json({ ticket: updated });
+  if (!updated) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    ticket: { ...updated, code: `${updated.project.key}-${updated.ticketNumber}` },
+  });
 }

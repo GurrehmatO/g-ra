@@ -4,12 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
   closestCorners,
 } from "@dnd-kit/core";
 import Column from "./Column";
+import TicketCard, { TicketCardData, TicketCardView } from "./TicketCard";
 import FilterBar, { FilterState } from "./FilterBar";
 import TicketForm, { CustomFieldDef, MemberOption, TicketDraft } from "@/components/tickets/TicketForm";
 import TicketDetail from "@/components/tickets/TicketDetail";
@@ -17,6 +20,7 @@ import { Button } from "@/components/ui/fields";
 
 export type BoardTicket = {
   id: string;
+  code: string;
   title: string;
   type: "STORY" | "BUG";
   statusId: string;
@@ -46,6 +50,7 @@ export default function Board({
   });
   const [showForm, setShowForm] = useState(false);
   const [openTicketId, setOpenTicketId] = useState<string | null>(null);
+  const [activeTicket, setActiveTicket] = useState<TicketCardData | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -67,7 +72,24 @@ export default function Board({
     load();
   }, [load]);
 
+  function onDragStart(event: DragStartEvent) {
+    const ticketId = String(event.active.id);
+    const t = tickets.find((tk) => tk.id === ticketId);
+    if (t) {
+      setActiveTicket({
+        id: t.id,
+        code: t.code,
+        title: t.title,
+        type: t.type,
+        assigneeName: t.assignee?.name ?? t.assignee?.email ?? null,
+        commentCount: t._count.comments,
+        imageCount: t._count.images,
+      });
+    }
+  }
+
   async function onDragEnd(event: DragEndEvent) {
+    setActiveTicket(null);
     const { active, over } = event;
     if (!over) return;
     const ticketId = String(active.id);
@@ -95,6 +117,7 @@ export default function Board({
       .filter((t) => t.statusId === statusId)
       .map((t) => ({
         id: t.id,
+        code: t.code,
         title: t.title,
         type: t.type,
         assigneeName: t.assignee?.name ?? t.assignee?.email ?? null,
@@ -125,6 +148,7 @@ export default function Board({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
+          onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
           <div className="flex gap-4 overflow-x-auto pb-4">
@@ -139,6 +163,11 @@ export default function Board({
               />
             ))}
           </div>
+          <DragOverlay>
+            {activeTicket ? (
+              <TicketCardView ticket={activeTicket} className="cursor-grabbing shadow-lg ring-2 ring-primary/40" />
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 

@@ -8,6 +8,7 @@ import TicketForm, { CustomFieldDef, MemberOption } from "./TicketForm";
 
 type TicketDetail = {
   id: string;
+  code: string;
   type: "STORY" | "BUG";
   title: string;
   description: string | null;
@@ -96,15 +97,7 @@ export default function TicketDetail({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <span
-            className={
-              ticket.type === "BUG"
-                ? "rounded bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive"
-                : "rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary"
-            }
-          >
-            {ticket.type}
-          </span>
+          <div className="font-mono text-xs text-muted-foreground">{ticket.code}</div>
           <h3 className="mt-1 text-lg font-semibold">{ticket.title}</h3>
         </div>
         <Button variant="secondary" onClick={() => setEditing(true)}>

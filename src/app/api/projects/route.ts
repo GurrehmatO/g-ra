@@ -77,6 +77,9 @@ export async function POST(req: NextRequest) {
       members: {
         create: { userId: session.user.id, role: "ADMIN" },
       },
+      sequence: {
+        create: { lastNumber: 0 },
+      },
     },
   });
 

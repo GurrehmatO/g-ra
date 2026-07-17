@@ -55,6 +55,7 @@ model Project {
   statuses    Status[]
   customFields CustomField[]
   tickets     Ticket[]
+  sequence    TicketSequence?
 }
 
 model ProjectMember {
@@ -95,9 +96,10 @@ model CustomField {
 }
 
 model Ticket {
-  id          String       @id @default(cuid())
-  projectId   String
-  type        TicketType   @default(STORY)
+  id           String       @id @default(cuid())
+  projectId    String
+  ticketNumber Int
+  type         TicketType   @default(STORY)
   title       String
   description String?
   creatorId   String
@@ -116,6 +118,7 @@ model Ticket {
 
   @@index([projectId, statusId])
   @@index([assigneeId])
+  @@unique([projectId, ticketNumber])
 }
 
 model TicketValue {
@@ -149,6 +152,14 @@ model Comment {
   author    User     @relation(fields: [authorId], references: [id])
 
   @@index([ticketId])
+}
+
+model TicketSequence {
+  projectId  String  @id
+  lastNumber Int     @default(0)
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
 }
 
 model TicketHistory {

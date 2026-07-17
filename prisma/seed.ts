@@ -53,6 +53,11 @@ async function main() {
         },
       },
     });
+
+    await prisma.ticketSequence.create({
+      data: { projectId: project.id, lastNumber: 0 },
+    });
+
     console.log(`Seed project created: ${project.key}`);
   } else {
     console.log("Seed project already exists, skipping.");

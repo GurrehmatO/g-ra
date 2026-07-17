@@ -1,10 +1,12 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { forwardRef } from "react";
+import { useDraggable, type DraggableAttributes } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 export type TicketCardData = {
   id: string;
+  code: string;
   title: string;
   type: "STORY" | "BUG";
   assigneeName: string | null;
@@ -24,17 +26,44 @@ export default function TicketCard({
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
-    <div
+    <TicketCardView
       ref={setNodeRef}
+      ticket={ticket}
+      style={style}
+      className="cursor-grab hover:border-ring active:cursor-grabbing"
+      attributes={attributes}
+      listeners={listeners}
+      onClick={() => onOpen(ticket.id)}
+    />
+  );
+}
+
+export const TicketCardView = forwardRef<
+  HTMLDivElement,
+  {
+    ticket: TicketCardData;
+    style?: React.CSSProperties;
+    className?: string;
+    attributes?: DraggableAttributes;
+    listeners?: Record<string, unknown>;
+    onClick?: () => void;
+  }
+>(function TicketCardView(
+  { ticket, style, className = "", attributes, listeners, onClick },
+  ref
+) {
+  return (
+    <div
+      ref={ref}
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => onOpen(ticket.id)}
-      className="cursor-grab rounded-md border border-border bg-white p-3 text-sm shadow-sm hover:border-ring active:cursor-grabbing"
+      onClick={onClick}
+      className={`rounded-md border border-border bg-white p-3 text-sm shadow-sm ${className}`}
     >
       <div className="mb-1 flex items-center gap-2">
         <span
@@ -47,7 +76,8 @@ export default function TicketCard({
           {ticket.type}
         </span>
       </div>
-      <div className="font-medium text-foreground">{ticket.title}</div>
+      <div className="font-mono text-xs text-muted-foreground">{ticket.code}</div>
+      <div className="mt-0.5 font-medium text-foreground">{ticket.title}</div>
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{ticket.assigneeName ?? "Unassigned"}</span>
         <span>
@@ -57,4 +87,4 @@ export default function TicketCard({
       </div>
     </div>
   );
-}
+});

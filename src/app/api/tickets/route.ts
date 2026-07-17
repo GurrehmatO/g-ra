@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
     where,
     include: {
       status: true,
+      project: { select: { key: true } },
       creator: { select: { id: true, name: true, email: true } },
       assignee: { select: { id: true, name: true, email: true } },
       customValues: { include: { customField: true } },
@@ -62,7 +63,12 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ tickets });
+  const serialized = tickets.map((t) => ({
+    ...t,
+    code: `${t.project.key}-${t.ticketNumber}`,
+  }));
+
+  return NextResponse.json({ tickets: serialized });
 }
 
 export async function POST(req: NextRequest) {
@@ -127,29 +133,52 @@ export async function POST(req: NextRequest) {
     (v) => validFieldIds.includes(v.customFieldId) && v.value
   );
 
-  const ticket = await prisma.ticket.create({
-    data: {
-      projectId,
-      type,
-      title,
-      description,
-      creatorId: session.user.id,
-      assigneeId,
-      statusId: status.id,
-      customValues: {
-        create: filteredValues.map((v) => ({
-          customFieldId: v.customFieldId,
-          value: v.value,
-        })),
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { key: true },
+  });
+  if (!project) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  const ticket = await prisma.$transaction(async (tx) => {
+    const seq = await tx.ticketSequence.upsert({
+      where: { projectId },
+      create: { projectId, lastNumber: 1 },
+      update: { lastNumber: { increment: 1 } },
+    });
+    const ticketNumber = seq.lastNumber;
+
+    const ticket = await tx.ticket.create({
+      data: {
+        projectId,
+        ticketNumber,
+        type,
+        title,
+        description,
+        creatorId: session.user.id,
+        assigneeId,
+        statusId: status.id,
+        customValues: {
+          create: filteredValues.map((v) => ({
+            customFieldId: v.customFieldId,
+            value: v.value,
+          })),
+        },
       },
-    },
-    include: {
-      status: true,
-      creator: { select: { id: true, name: true, email: true } },
-      assignee: { select: { id: true, name: true, email: true } },
-      customValues: { include: { customField: true } },
-    },
+      include: {
+        status: true,
+        creator: { select: { id: true, name: true, email: true } },
+        assignee: { select: { id: true, name: true, email: true } },
+        customValues: { include: { customField: true } },
+      },
+    });
+
+    return { ticket, ticketNumber };
   });
 
-  return NextResponse.json({ ticket }, { status: 201 });
+  return NextResponse.json(
+    { ticket: { ...ticket.ticket, code: `${project.key}-${ticket.ticketNumber}` } },
+    { status: 201 }
+  );
 }
