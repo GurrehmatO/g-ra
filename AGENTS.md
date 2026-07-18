@@ -4,21 +4,23 @@ Compact guidance for OpenCode sessions working in **G-ra** (a self-hostable Jira
 
 ## Stack & entrypoints
 - Next.js 14 App Router + React + TypeScript. Server runtime is **Node.js** — every DB API route must keep `export const runtime = "nodejs"` (Prisma can't run on Edge). Verify with `src/app/api/**/route.ts`.
-- Single package, no monorepo. Source layout: `prisma/` (schema + seed), `src/app/` (routes), `src/components/`, `src/lib/`.
+- Single package, no monorepo. Source layout: `prisma/` (schema + seed + migrations), `src/app/` (routes), `src/components/`, `src/lib/`.
 - `src/lib/` holds the wiring: `prisma.ts` (client singleton), `auth.ts` (Auth.js v5 config), `session.ts` (authz helpers like `requireAdmin`/`requireProjectMember`), `supabase.ts`, `history.ts` (audit-log helper).
 
 ## Developer commands
 - `npm run dev` — dev server on :3000.
 - `npm run build` / `npm start` — production build/serve.
 - `npm run lint` — `next lint` (extends `next/core-web-vitals`; no extra rules configured).
-- `npm run db:push` — push Prisma schema to DB (no migrations are used; schema is the source of truth).
-- `npm run db:seed` — seed first ADMIN + demo project (uses `tsx prisma/seed.ts`). `npm run db:setup` = push + seed.
+- **Migrations are the source of truth** (Prisma Migrate). Do not use `prisma db push` — schema changes go through migration files under `prisma/migrations/`.
+  - `npx prisma migrate dev` — generate + apply a migration after editing `prisma/schema.prisma` (also generates the client). Use `--name <desc>` to name it.
+  - `npx prisma migrate deploy` — apply pending migrations without generating (use this in CI / on the cloud DB).
+  - `npm run db:seed` — seed first ADMIN + demo project (uses `tsx prisma/seed.ts`).
 - `prisma generate` runs automatically via `postinstall`. After editing `prisma/schema.prisma`, run it manually if `@prisma/client` types are stale.
 - No test suite exists. Do not invent `npm test`.
 
 ## Setup / environment quirks
 - Copy `.env.example` → `.env`. Local dev can run on a local Postgres DB with the SUPABASE_* vars blank (see `LOCAL.md`).
-- `DATABASE_URL` = pooled connection, `DIRECT_URL` = direct (5432) for `prisma db push`. On Supabase they differ — keep the split.
+- `DATABASE_URL` = pooled connection, `DIRECT_URL` = direct (5432) for `prisma migrate`. On Supabase they differ — keep the split. `migrate dev` needs a shadow DB; it derives one from the connection string (local Postgres works out of the box).
 - Image upload optional: set `USE_LOCAL_STORAGE=1` to write to `public/uploads` (no Supabase needed); otherwise needs `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` + a public `ticket-images` bucket. Everything else works without Supabase.
 - Seed admin defaults: `admin@g-ra.dev` / `admin1234` (override via `SEED_ADMIN_*` env vars before seeding).
 

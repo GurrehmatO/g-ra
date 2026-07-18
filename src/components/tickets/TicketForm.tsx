@@ -52,6 +52,25 @@ export default function TicketForm({
   const isEdit = Boolean(form.id);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadImages(ticketId: string) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append("file", file);
+        await fetch(`/api/tickets/${ticketId}/images`, {
+          method: "POST",
+          body: fd,
+        });
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function set<K extends keyof TicketDraft>(key: K, value: TicketDraft[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -84,6 +103,11 @@ export default function TicketForm({
       const data = await res.json().catch(() => ({}));
       setError(data.error ?? "Failed to save ticket");
       return;
+    }
+    if (!isEdit) {
+      const data = await res.json().catch(() => ({}));
+      const createdId = data.ticket?.id;
+      if (createdId) await uploadImages(createdId);
     }
     onSaved();
   }
@@ -192,9 +216,29 @@ export default function TicketForm({
         </div>
       )}
 
+      <div>
+        <Label htmlFor="t-images">Images</Label>
+        <input
+          id="t-images"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => setFiles(e.target.files)}
+          disabled={uploading}
+        />
+        {uploading && (
+          <span className="ml-2 text-xs text-muted-foreground">Uploading…</span>
+        )}
+        {files && files.length > 0 && !uploading && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {files.length} image(s) will be attached.
+          </p>
+        )}
+      </div>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || uploading}>
           {saving ? "Saving..." : isEdit ? "Save changes" : "Create ticket"}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
