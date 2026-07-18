@@ -41,17 +41,20 @@ git push
 | Name | Value |
 |------|-------|
 | `AUTH_SECRET` | `openssl rand -base64 32` output (any long random string) |
-| `DATABASE_URL` | Supabase **pooled** connection string |
-| `DIRECT_URL` | Supabase **direct** connection string |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role key (preferred) |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable/anon key (fallback) |
+| `POSTGRES_PRISMA_URL` | Supabase **pooled** connection string (injected by the Vercel Supabase integration) |
+| `POSTGRES_URL_NON_POOLING` | Supabase **direct** connection string (injected by the integration) |
+| `SUPABASE_URL` | Supabase Project URL (injected as `SUPABASE_URL`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role key (injected; preferred) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable/anon key (injected; fallback) |
 | `SUPABASE_STORAGE_BUCKET` | `ticket-images` |
 | `SEED_ADMIN_EMAIL` | admin email, e.g. `admin@g-ra.dev` |
 | `SEED_ADMIN_PASSWORD` | admin password |
 | `SEED_ADMIN_NAME` | `Admin` |
 
-> Do NOT set `USE_LOCAL_STORAGE` in production — image uploads go to Supabase Storage.
+> The Vercel Supabase integration already injects `POSTGRES_PRISMA_URL`,
+> `POSTGRES_URL_NON_POOLING`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`, so you
+> usually only need to add `AUTH_SECRET`, `SUPABASE_STORAGE_BUCKET`, and the
+> `SEED_ADMIN_*` vars. Do NOT set `USE_LOCAL_STORAGE` in production.
 
 5. Click **Deploy**. The build runs migrations and seeds the first admin automatically.
 

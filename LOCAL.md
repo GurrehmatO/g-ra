@@ -27,8 +27,8 @@ Edit `.env` and set:
 
 ```
 AUTH_SECRET=any-long-random-string
-DATABASE_URL="postgresql://postgres:<YOUR_PASSWORD>@localhost:5432/gra?schema=public"
-DIRECT_URL="postgresql://postgres:<YOUR_PASSWORD>@localhost:5432/gra?schema=public"
+POSTGRES_PRISMA_URL="postgresql://postgres:<YOUR_PASSWORD>@localhost:5432/gra?schema=public"
+POSTGRES_URL_NON_POOLING="postgresql://postgres:<YOUR_PASSWORD>@localhost:5432/gra?schema=public"
 USE_LOCAL_STORAGE=1
 ```
 
