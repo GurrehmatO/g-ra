@@ -52,13 +52,21 @@ export default async function ProjectBoardPage({
   }));
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen md:pl-16">
       <TopNav />
-      <div className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+      <div className="border-b-2 border-ink bg-paper-2">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-3 px-4 py-4">
           <div>
-            <h1 className="text-xl font-semibold">{project.name}</h1>
-            <p className="text-sm text-muted-foreground">{project.key}</p>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-accent-ink">
+                {project.key}
+              </span>
+              <span className="h-3 w-px bg-line-strong" />
+              <span className="spec">Project</span>
+            </div>
+            <h1 className="font-display text-2xl font-bold leading-none text-ink">
+              {project.name}
+            </h1>
           </div>
           <div className="flex gap-2">
             <Link href={`/projects/${project.id}/settings`}>

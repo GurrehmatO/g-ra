@@ -14,10 +14,18 @@ export default async function UsersPage() {
   });
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen md:pl-16">
       <TopNav />
       <main className="mx-auto max-w-5xl space-y-8 p-4">
-        <h1 className="text-2xl font-semibold">User management</h1>
+        <header className="flex items-center gap-3 border-b-2 border-ink pb-3">
+          <span className="h-8 w-1.5 bg-accent" aria-hidden />
+          <div>
+            <span className="spec">Admin</span>
+            <h1 className="font-display text-3xl font-bold leading-none text-ink">
+              User management
+            </h1>
+          </div>
+        </header>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -25,19 +33,27 @@ export default async function UsersPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-3 text-lg font-medium">Existing users</h2>
-            <ul className="divide-y divide-border">
+            <div className="mb-4 flex items-center gap-2 border-b border-line pb-2">
+              <span className="h-4 w-1 bg-blueprint" aria-hidden />
+              <h2 className="font-display text-lg font-bold text-ink">
+                Existing users
+              </h2>
+            </div>
+            <ul className="divide-y divide-line">
               {users.map((u) => (
-                <li key={u.id} className="flex items-center justify-between py-2 text-sm">
+                <li
+                  key={u.id}
+                  className="flex items-center justify-between py-2.5 text-sm"
+                >
                   <div>
-                    <div className="font-medium">{u.name ?? u.email}</div>
-                    <div className="text-muted-foreground">{u.email}</div>
+                    <div className="font-medium text-ink">{u.name ?? u.email}</div>
+                    <div className="font-mono text-xs text-muted-fg">{u.email}</div>
                   </div>
                   <span
                     className={
                       u.role === "ADMIN"
-                        ? "rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground"
-                        : "rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                        ? "tag border-accent/40 bg-accent/10 text-accent-ink"
+                        : "tag border-line bg-paper text-muted-fg"
                     }
                   >
                     {u.role}

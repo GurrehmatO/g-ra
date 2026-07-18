@@ -138,12 +138,19 @@ export default function Board({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <FilterBar members={members} value={filters} onChange={setFilters} />
-        <Button onClick={() => setShowForm(true)}>New ticket</Button>
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-1 bg-accent" aria-hidden />
+          <h2 className="font-display text-base font-bold text-ink">Board</h2>
+          <span className="spec">{tickets.length} tickets</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <FilterBar members={members} value={filters} onChange={setFilters} />
+          <Button onClick={() => setShowForm(true)}>+ New ticket</Button>
+        </div>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading board…</p>
+        <p className="spec animate-pulse">Loading board…</p>
       ) : (
         <DndContext
           sensors={sensors}
@@ -151,21 +158,29 @@ export default function Board({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {statuses.map((s) => (
-              <Column
-                key={s.id}
-                statusId={s.id}
-                name={s.name}
-                color={s.color}
-                tickets={ticketsFor(s.id)}
-                onOpen={setOpenTicketId}
-              />
-            ))}
-          </div>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {statuses.map((s, i) => (
+                <div
+                  key={s.id}
+                  className="animate-card-in shrink-0"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                <Column
+                  statusId={s.id}
+                  name={s.name}
+                  color={s.color}
+                  tickets={ticketsFor(s.id)}
+                  onOpen={setOpenTicketId}
+                />
+                </div>
+              ))}
+            </div>
           <DragOverlay>
             {activeTicket ? (
-              <TicketCardView ticket={activeTicket} className="cursor-grabbing shadow-lg ring-2 ring-primary/40" />
+              <TicketCardView
+                ticket={activeTicket}
+                className="cursor-grabbing rotate-2 shadow-drag ring-2 ring-accent"
+              />
             ) : null}
           </DragOverlay>
         </DndContext>
@@ -213,16 +228,23 @@ function Dialog({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="my-8 w-full max-w-2xl rounded-lg border border-border bg-white p-5 shadow-lg"
+        className="my-8 w-full max-w-2xl animate-pop-in rounded-md border border-line bg-card p-6 shadow-lift"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+        <div className="mb-5 flex items-center justify-between border-b border-line pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-4 w-1 bg-accent" aria-hidden />
+            <h2 className="font-display text-lg font-bold text-ink">{title}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="flex h-7 w-7 items-center justify-center rounded-sm border border-line font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent-ink"
+          >
             ✕
           </button>
         </div>

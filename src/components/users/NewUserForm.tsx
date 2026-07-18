@@ -37,7 +37,7 @@ export default function NewUserForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
-      <h2 className="text-lg font-medium">New user</h2>
+      <h2 className="mb-1 font-display text-lg font-bold text-ink">New user</h2>
       <div>
         <Label htmlFor="u-email">Email</Label>
         <Input

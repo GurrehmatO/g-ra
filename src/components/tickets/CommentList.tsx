@@ -58,17 +58,19 @@ export default function CommentList({
 
       <ul className="space-y-3">
         {comments.length === 0 && (
-          <li className="text-sm text-muted-foreground">No comments yet.</li>
+          <li className="spec">No comments yet.</li>
         )}
         {comments.map((c) => (
-          <li key={c.id} className="rounded-md border border-border p-3 text-sm">
+          <li key={c.id} className="rounded-sm border border-line bg-card p-3 text-sm">
             <div className="mb-1 flex items-center justify-between">
-              <span className="font-medium">{c.author.name ?? c.author.email}</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="font-medium text-ink">
+                {c.author.name ?? c.author.email}
+              </span>
+              <span className="font-mono text-[10px] text-muted-fg">
                 {new Date(c.createdAt).toLocaleString()}
               </span>
             </div>
-            <div className="whitespace-pre-wrap">{c.body}</div>
+            <div className="whitespace-pre-wrap text-ink-soft">{c.body}</div>
           </li>
         ))}
       </ul>

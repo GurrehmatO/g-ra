@@ -26,7 +26,7 @@ export default function TicketCard({
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.35 : 1,
   };
 
   return (
@@ -34,7 +34,7 @@ export default function TicketCard({
       ref={setNodeRef}
       ticket={ticket}
       style={style}
-      className="cursor-grab hover:border-ring active:cursor-grabbing"
+      className="cursor-grab hover:border-ink-soft hover:-translate-y-0.5 active:cursor-grabbing"
       attributes={attributes}
       listeners={listeners}
       onClick={() => onOpen(ticket.id)}
@@ -56,6 +56,7 @@ export const TicketCardView = forwardRef<
   { ticket, style, className = "", attributes, listeners, onClick },
   ref
 ) {
+  const isBug = ticket.type === "BUG";
   return (
     <div
       ref={ref}
@@ -63,26 +64,35 @@ export const TicketCardView = forwardRef<
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`rounded-md border border-border bg-white p-3 text-sm shadow-sm ${className}`}
+      className={`group relative overflow-hidden rounded-sm border border-line bg-card p-3 pl-4 text-sm shadow-sm transition-all ${className}`}
     >
-      <div className="mb-1 flex items-center gap-2">
+      {/* marker spine */}
+      <span
+        className={`absolute inset-y-0 left-0 w-1 ${
+          isBug ? "bg-bug" : "bg-blueprint"
+        }`}
+        aria-hidden
+      />
+      <div className="mb-1.5 flex items-center justify-between">
         <span
-          className={
-            ticket.type === "BUG"
-              ? "rounded bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive"
-              : "rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary"
-          }
+          className={`tag ${
+            isBug
+              ? "border-bug/40 bg-bug/10 text-bug"
+              : "border-blueprint/40 bg-blueprint/10 text-blueprint-deep"
+          }`}
         >
           {ticket.type}
         </span>
+        <span className="font-mono text-[10px] tracking-wide text-muted-fg">
+          {ticket.code}
+        </span>
       </div>
-      <div className="font-mono text-xs text-muted-foreground">{ticket.code}</div>
-      <div className="mt-0.5 font-medium text-foreground">{ticket.title}</div>
-      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{ticket.assigneeName ?? "Unassigned"}</span>
-        <span>
-          {ticket.commentCount > 0 && `💬 ${ticket.commentCount}`}{" "}
-          {ticket.imageCount > 0 && `🖼 ${ticket.imageCount}`}
+      <div className="font-medium leading-snug text-ink">{ticket.title}</div>
+      <div className="mt-2.5 flex items-center justify-between font-mono text-[11px] text-muted-fg">
+        <span className="truncate">{ticket.assigneeName ?? "Unassigned"}</span>
+        <span className="flex shrink-0 gap-2">
+          {ticket.commentCount > 0 && <span>✱ {ticket.commentCount}</span>}
+          {ticket.imageCount > 0 && <span>▣ {ticket.imageCount}</span>}
         </span>
       </div>
     </div>

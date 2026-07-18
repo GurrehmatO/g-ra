@@ -48,15 +48,15 @@ export default function MembersPanel({
     <div className="space-y-6">
       <div>
         <h2 className="mb-3 text-lg font-medium">Members</h2>
-        <ul className="divide-y divide-border rounded-md border border-border">
+        <ul className="divide-y divide-line rounded-sm border border-line">
           {members.map((m) => (
             <li key={m.id} className="flex items-center justify-between p-3 text-sm">
               <div>
                 <div className="font-medium">{m.name ?? m.email}</div>
-                <div className="text-muted-foreground">{m.email}</div>
+                <div className="font-mono text-xs text-muted-fg">{m.email}</div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded bg-muted px-2 py-0.5 text-xs">
+                <span className="tag border-line bg-paper text-muted-fg">
                   {m.role}
                 </span>
                 <Button variant="ghost" onClick={() => remove(m.id)}>
@@ -83,7 +83,7 @@ export default function MembersPanel({
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="h-10 rounded-md border border-border bg-white px-3 text-sm"
+            className="h-10 rounded-sm border border-line bg-card px-3 text-sm text-ink outline-none hover:border-line-strong focus:border-accent focus:ring-1 focus:ring-accent"
           >
             <option value="MEMBER">Member</option>
             <option value="ADMIN">Admin</option>

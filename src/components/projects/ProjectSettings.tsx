@@ -87,7 +87,7 @@ export default function ProjectSettings({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="mb-3 text-lg font-medium">General</h2>
+        <h2 className="mb-3 font-display text-lg font-bold text-ink">General</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <Label htmlFor="s-name">Name</Label>
@@ -106,7 +106,7 @@ export default function ProjectSettings({
 
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium">Statuses (board columns)</h2>
+          <h2 className="font-display text-lg font-bold text-ink">Statuses (board columns)</h2>
           <Button variant="secondary" type="button" onClick={addStatus}>
             Add status
           </Button>
@@ -118,7 +118,7 @@ export default function ProjectSettings({
                 type="color"
                 value={s.color}
                 onChange={(e) => updateStatus(i, { color: e.target.value })}
-                className="h-10 w-10 rounded border border-border"
+                className="h-10 w-10 rounded-sm border border-line bg-card"
               />
               <Input
                 value={s.name}
@@ -139,7 +139,7 @@ export default function ProjectSettings({
 
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium">Custom fields</h2>
+          <h2 className="font-display text-lg font-bold text-ink">Custom fields</h2>
           <Button variant="secondary" type="button" onClick={addField}>
             Add field
           </Button>

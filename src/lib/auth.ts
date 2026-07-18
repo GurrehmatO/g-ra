@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import type { Role } from "@prisma/client";
 
 export const authOptions = {
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
+  debug: process.env.AUTH_DEBUG === "1",
   session: { strategy: "jwt" as const },
   pages: {
     signIn: "/login",

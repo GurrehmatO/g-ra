@@ -88,17 +88,21 @@ export default function TicketDetail({
   }
 
   if (loading || !ticket) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <p className="spec animate-pulse">Loading…</p>;
   }
 
   const cvMap = new Map(ticket.customValues.map((cv) => [cv.customField.id, cv]));
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 border-b border-line pb-4">
         <div>
-          <div className="font-mono text-xs text-muted-foreground">{ticket.code}</div>
-          <h3 className="mt-1 text-lg font-semibold">{ticket.title}</h3>
+          <div className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-accent-ink">
+            {ticket.code}
+          </div>
+          <h3 className="mt-1.5 font-display text-2xl font-bold leading-tight text-ink">
+            {ticket.title}
+          </h3>
         </div>
         <Button variant="secondary" onClick={() => setEditing(true)}>
           Edit
@@ -170,7 +174,7 @@ export default function TicketDetail({
           )}
 
           <div>
-            <div className="mb-2 flex items-center gap-3">
+            <div className="mb-4 flex items-center gap-1 border-b border-line">
               <button
                 className={tabCls(activeTab === "details")}
                 onClick={() => setActiveTab("details")}
@@ -195,9 +199,15 @@ export default function TicketDetail({
               <div className="space-y-3">
                 <label className="inline-block">
                   <span className="mb-1 block text-sm font-medium">Add image</span>
-                  <input type="file" accept="image/*" onChange={onUpload} disabled={uploading} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onUpload}
+                    disabled={uploading}
+                    className="block w-full text-sm text-ink-soft file:mr-3 file:rounded-sm file:border file:border-line file:bg-card file:px-3 file:py-1.5 file:font-mono file:text-[10px] file:font-semibold file:uppercase file:tracking-wider file:text-ink-soft hover:file:border-accent hover:file:text-accent-ink"
+                  />
                   {uploading && (
-                    <span className="ml-2 text-xs text-muted-foreground">Uploading…</span>
+                    <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-muted-fg">Uploading…</span>
                   )}
                 </label>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -207,11 +217,11 @@ export default function TicketDetail({
                       key={img.id}
                       src={img.url}
                       alt="ticket attachment"
-                      className="h-32 w-full rounded-md border border-border object-cover"
+                      className="h-32 w-full rounded-sm border border-line object-cover"
                     />
                   ))}
                   {ticket.images.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No images yet.</p>
+                    <p className="spec">No images yet.</p>
                   )}
                 </div>
               </div>
@@ -236,16 +246,16 @@ export default function TicketDetail({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </div>
-      <div>{children}</div>
+      <div className="spec mb-1 font-semibold text-ink-soft">{label}</div>
+      <div className="text-sm text-ink">{children}</div>
     </div>
   );
 }
 
 function tabCls(active: boolean) {
-  return `rounded-md px-3 py-1.5 text-sm ${
-    active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+  return `relative -mb-px border-b-2 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+    active
+      ? "border-accent text-accent-ink"
+      : "border-transparent text-muted-fg hover:text-ink-soft"
   }`;
 }

@@ -225,12 +225,13 @@ export default function TicketForm({
           multiple
           onChange={(e) => setFiles(e.target.files)}
           disabled={uploading}
+          className="block w-full text-sm text-ink-soft file:mr-3 file:rounded-sm file:border file:border-line file:bg-card file:px-3 file:py-1.5 file:font-mono file:text-[10px] file:font-semibold file:uppercase file:tracking-wider file:text-ink-soft hover:file:border-accent hover:file:text-accent-ink"
         />
         {uploading && (
-          <span className="ml-2 text-xs text-muted-foreground">Uploading…</span>
+          <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-muted-fg">Uploading…</span>
         )}
         {files && files.length > 0 && !uploading && (
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-fg">
             {files.length} image(s) will be attached.
           </p>
         )}

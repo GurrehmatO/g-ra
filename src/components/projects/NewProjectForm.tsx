@@ -33,7 +33,7 @@ export default function NewProjectForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
-      <h2 className="text-lg font-medium">New project</h2>
+        <h2 className="mb-1 font-display text-lg font-bold text-ink">New project</h2>
       <div>
         <Label htmlFor="p-name">Name</Label>
         <Input

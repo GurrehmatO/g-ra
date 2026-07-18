@@ -24,10 +24,18 @@ export default async function ProjectSettingsPage({
   if (!project) notFound();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen md:pl-16">
       <TopNav />
       <main className="mx-auto max-w-3xl p-4">
-        <h1 className="mb-6 text-2xl font-semibold">Settings · {project.name}</h1>
+        <header className="mb-6 flex items-center gap-3 border-b-2 border-ink pb-3">
+          <span className="h-8 w-1.5 bg-accent" aria-hidden />
+          <div>
+            <span className="spec">{project.key}</span>
+            <h1 className="font-display text-2xl font-bold leading-none text-ink">
+              Settings · {project.name}
+            </h1>
+          </div>
+        </header>
         <ProjectSettings
           projectId={project.id}
           initialName={project.name}
