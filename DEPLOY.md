@@ -12,8 +12,12 @@ Hobby** — no paid services required.
    (The pooled one ends in `:6543` with `pgbouncer=true`; the direct one ends in `:5432`.)
 3. In **Project Settings → API**, copy:
    - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-   - **service_role** key (secret!) → `SUPABASE_SERVICE_ROLE_KEY`
+   - **service_role** key (secret!) → `SUPABASE_SERVICE_ROLE_KEY` (preferred)
+   - **publishable / anon** key → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (fallback;
+     used automatically if the service-role key is left blank. Works only if the
+     storage bucket is set to **public**.)
 4. In **Storage**, create a new **public** bucket named `ticket-images`.
+   (If you use the publishable/anon key, the bucket MUST be public so uploads work.)
 
 ## 2. Push your code to GitHub
 
@@ -40,7 +44,8 @@ git push
 | `DATABASE_URL` | Supabase **pooled** connection string |
 | `DIRECT_URL` | Supabase **direct** connection string |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role key (preferred) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable/anon key (fallback) |
 | `SUPABASE_STORAGE_BUCKET` | `ticket-images` |
 | `SEED_ADMIN_EMAIL` | admin email, e.g. `admin@g-ra.dev` |
 | `SEED_ADMIN_PASSWORD` | admin password |
