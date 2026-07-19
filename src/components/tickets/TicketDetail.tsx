@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button, Select } from "@/components/ui/fields";
+import ImageViewer from "@/components/ui/ImageViewer";
 import CommentList, { CommentData } from "./CommentList";
 import HistoryLog, { HistoryEntry } from "./HistoryLog";
 import TicketForm, { CustomFieldDef, MemberOption } from "./TicketForm";
@@ -46,6 +47,7 @@ export default function TicketDetail({
   const [activeTab, setActiveTab] = useState<"details" | "comments" | "history">(
     "details"
   );
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   async function load() {
     const res = await fetch(`/api/tickets/${ticketId}`);
@@ -211,13 +213,14 @@ export default function TicketDetail({
                   )}
                 </label>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {ticket.images.map((img) => (
+                  {ticket.images.map((img, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={img.id}
                       src={img.url}
                       alt="ticket attachment"
-                      className="h-32 w-full rounded-sm border border-line object-cover"
+                      className="h-32 w-full cursor-pointer rounded-sm border border-line object-cover transition-opacity hover:opacity-80"
+                      onClick={() => setViewerIndex(i)}
                     />
                   ))}
                   {ticket.images.length === 0 && (
@@ -238,6 +241,14 @@ export default function TicketDetail({
             {activeTab === "history" && <HistoryLog entries={ticket.history} />}
           </div>
         </>
+      )}
+
+      {viewerIndex !== null && ticket && (
+        <ImageViewer
+          images={ticket.images}
+          initialIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
       )}
     </div>
   );
