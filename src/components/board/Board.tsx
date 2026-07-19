@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -16,7 +16,7 @@ import Column from "./Column";
 import { TicketCardData, TicketCardView } from "./TicketCard";
 import FilterBar, { FilterState } from "./FilterBar";
 import TicketForm, { CustomFieldDef, MemberOption, TicketDraft } from "@/components/tickets/TicketForm";
-import TicketDetail from "@/components/tickets/TicketDetail";
+import TicketDetail, { TicketDetailHandle } from "@/components/tickets/TicketDetail";
 import { Button } from "@/components/ui/fields";
 
 export type BoardTicket = {
@@ -25,7 +25,15 @@ export type BoardTicket = {
   title: string;
   type: "STORY" | "BUG";
   statusId: string;
+  status: { id: string; name: string; color: string };
+  description: string | null;
+  creator: { id: string; name: string | null; email: string };
   assignee: { id: string; name: string | null; email: string } | null;
+  createdAt: string;
+  customValues: {
+    value: string | null;
+    customField: { id: string; name: string; type: string };
+  }[];
   _count: { comments: number; images: number };
 };
 
@@ -52,6 +60,7 @@ export default function Board({
   const [showForm, setShowForm] = useState(false);
   const [openTicketId, setOpenTicketId] = useState<string | null>(null);
   const [activeTicket, setActiveTicket] = useState<TicketCardData | null>(null);
+  const detailHandleRef = useRef<TicketDetailHandle>(null!);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -202,42 +211,39 @@ export default function Board({
         </div>
       </div>
 
-      {loading ? (
-        <p className="spec animate-pulse">Loading board…</p>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-        >
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              {statuses.map((s, i) => (
-                <div
-                  key={s.id}
-                  className="animate-card-in shrink-0"
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
-                <Column
-                  statusId={s.id}
-                  name={s.name}
-                  color={s.color}
-                  tickets={ticketsFor(s.id)}
-                  onOpen={setOpenTicketId}
-                />
-                </div>
-              ))}
-            </div>
-          <DragOverlay>
-            {activeTicket ? (
-              <TicketCardView
-                ticket={activeTicket}
-                className="cursor-grabbing rotate-2 shadow-drag ring-2 ring-accent"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {statuses.map((s, i) => (
+              <div
+                key={s.id}
+                className="animate-card-in shrink-0"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+              <Column
+                statusId={s.id}
+                name={s.name}
+                color={s.color}
+                tickets={ticketsFor(s.id)}
+                onOpen={setOpenTicketId}
+                loading={loading}
               />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      )}
+              </div>
+            ))}
+          </div>
+        <DragOverlay>
+          {activeTicket ? (
+            <TicketCardView
+              ticket={activeTicket}
+              className="cursor-grabbing rotate-2 shadow-drag ring-2 ring-accent"
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {showForm && (
         <Dialog onClose={() => setShowForm(false)} title="New ticket">
@@ -259,11 +265,13 @@ export default function Board({
       {openTicketId && (
         <TicketDetailDialog
           ticketId={openTicketId}
+          ticketData={tickets.find((t) => t.id === openTicketId) ?? null}
           members={members}
           customFields={customFields}
           statuses={statuses}
           onClose={() => setOpenTicketId(null)}
           onChanged={load}
+          detailHandleRef={detailHandleRef}
         />
       )}
     </div>
@@ -273,16 +281,22 @@ export default function Board({
 function Dialog({
   title,
   onClose,
+  onCloseAsync,
   children,
 }: {
   title: string;
   onClose: () => void;
+  onCloseAsync?: () => Promise<boolean>;
   children: React.ReactNode;
 }) {
+  const handleClose = onCloseAsync
+    ? () => { onCloseAsync(); }
+    : onClose;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="my-8 w-full max-w-2xl animate-pop-in rounded-md border border-line bg-card p-6 shadow-lift"
@@ -294,7 +308,7 @@ function Dialog({
             <h2 className="font-display text-lg font-bold text-ink">{title}</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close"
             className="flex h-7 w-7 items-center justify-center rounded-sm border border-line font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-accent-ink"
           >
@@ -309,27 +323,38 @@ function Dialog({
 
 function TicketDetailDialog({
   ticketId,
+  ticketData,
   members,
   customFields,
   statuses,
   onClose,
   onChanged,
+  detailHandleRef,
 }: {
   ticketId: string;
+  ticketData: BoardTicket | null;
   members: MemberOption[];
   customFields: CustomFieldDef[];
   statuses: StatusDef[];
   onClose: () => void;
   onChanged: () => void;
+  detailHandleRef: React.RefObject<TicketDetailHandle>;
 }) {
   return (
-    <Dialog title="Ticket" onClose={onClose}>
+    <Dialog
+      title="Ticket"
+      onClose={onClose}
+      onCloseAsync={() => detailHandleRef.current?.handleClose() ?? Promise.resolve(true)}
+    >
       <TicketDetail
+        ref={detailHandleRef}
         ticketId={ticketId}
+        initialData={ticketData}
         members={members}
         customFields={customFields}
         statuses={statuses}
         onChanged={onChanged}
+        onClose={onClose}
       />
     </Dialog>
   );

@@ -13,12 +13,14 @@ export default function Column({
   color,
   tickets,
   onOpen,
+  loading,
 }: {
   statusId: string;
   name: string;
   color: string;
   tickets: TicketCardData[];
   onOpen: (id: string) => void;
+  loading?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: statusId });
 
@@ -51,7 +53,25 @@ export default function Column({
             <TicketCard key={t.id} ticket={t} onOpen={onOpen} />
           ))}
         </SortableContext>
-        {tickets.length === 0 && (
+        {loading && tickets.length === 0 && (
+          <div className="space-y-2.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse rounded-md border border-line bg-card p-3"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className="mb-2 h-3 w-16 rounded bg-line" />
+                <div className="mb-2 h-4 w-3/4 rounded bg-line" />
+                <div className="flex gap-2">
+                  <div className="h-3 w-12 rounded bg-line" />
+                  <div className="h-3 w-8 rounded bg-line" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {!loading && tickets.length === 0 && (
           <p className="px-1 py-6 text-center font-mono text-[10px] uppercase tracking-widest text-muted-fg">
             No tickets
           </p>
