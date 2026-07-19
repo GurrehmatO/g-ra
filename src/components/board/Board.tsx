@@ -12,7 +12,7 @@ import {
   closestCorners,
 } from "@dnd-kit/core";
 import Column from "./Column";
-import TicketCard, { TicketCardData, TicketCardView } from "./TicketCard";
+import { TicketCardData, TicketCardView } from "./TicketCard";
 import FilterBar, { FilterState } from "./FilterBar";
 import TicketForm, { CustomFieldDef, MemberOption, TicketDraft } from "@/components/tickets/TicketForm";
 import TicketDetail from "@/components/tickets/TicketDetail";
@@ -92,23 +92,74 @@ export default function Board({
     setActiveTicket(null);
     const { active, over } = event;
     if (!over) return;
+
     const ticketId = String(active.id);
-    const newStatusId = String(over.id);
+    const overId = String(over.id);
     const ticket = tickets.find((t) => t.id === ticketId);
-    if (!ticket || ticket.statusId === newStatusId) return;
+    if (!ticket) return;
 
-    const prev = tickets;
-    setTickets((ts) =>
-      ts.map((t) => (t.id === ticketId ? { ...t, statusId: newStatusId } : t))
-    );
+    const overTicket = tickets.find((t) => t.id === overId);
+    const overStatusId = overTicket ? overTicket.statusId : overId;
+    const isSameColumn = ticket.statusId === overStatusId;
 
-    const res = await fetch(`/api/tickets/${ticketId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ statusId: newStatusId }),
-    });
-    if (!res.ok) {
-      setTickets(prev);
+    if (isSameColumn) {
+      if (overTicket && ticketId === overId) return;
+
+      const columnTickets = tickets.filter(
+        (t) => t.statusId === ticket.statusId && t.id !== ticketId
+      );
+      let targetIdx = overTicket
+        ? columnTickets.findIndex((t) => t.id === overId)
+        : columnTickets.length;
+      if (overTicket) {
+        const origIdx = tickets.findIndex((t) => t.id === ticketId);
+        const overOrigIdx = tickets.findIndex((t) => t.id === overId);
+        if (origIdx < overOrigIdx) targetIdx += 1;
+      }
+      columnTickets.splice(targetIdx, 0, ticket);
+
+      const prev = tickets;
+      const reordered = tickets
+        .filter((t) => t.statusId !== ticket.statusId)
+        .concat(columnTickets);
+      setTickets(reordered);
+
+      const items = columnTickets.map((t, i) => ({ id: t.id, position: i }));
+      const res = await fetch("/api/tickets/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, items }),
+      });
+      if (!res.ok) setTickets(prev);
+    } else {
+      const newColumnTickets = tickets
+        .filter((t) => t.statusId === overStatusId && t.id !== ticketId);
+      const targetIdx = overTicket
+        ? newColumnTickets.findIndex((t) => t.id === overId)
+        : newColumnTickets.length;
+      newColumnTickets.splice(targetIdx, 0, { ...ticket, statusId: overStatusId });
+
+      const prev = tickets;
+      const reordered = tickets
+        .filter((t) => t.statusId !== overStatusId && t.id !== ticketId)
+        .concat(newColumnTickets);
+      setTickets(reordered);
+
+      const items = newColumnTickets.map((t, i) => ({ id: t.id, position: i }));
+      const res = await fetch(`/api/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statusId: overStatusId }),
+      });
+      if (res.ok) {
+        await fetch("/api/tickets/reorder", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId, items }),
+        });
+      } else {
+        setTickets(prev);
+      }
     }
   }
 

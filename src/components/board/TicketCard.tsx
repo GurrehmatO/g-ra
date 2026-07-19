@@ -1,7 +1,8 @@
 "use client";
 
 import { forwardRef } from "react";
-import { useDraggable, type DraggableAttributes } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import type { DraggableAttributes } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 export type TicketCardData = {
@@ -21,11 +22,12 @@ export default function TicketCard({
   ticket: TicketCardData;
   onOpen: (id: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: ticket.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: ticket.id });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    transform: CSS.Transform.toString(transform),
+    transition,
     opacity: isDragging ? 0.35 : 1,
   };
 

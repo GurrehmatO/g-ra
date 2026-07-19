@@ -1,6 +1,10 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import TicketCard, { TicketCardData } from "./TicketCard";
 
 export default function Column({
@@ -42,9 +46,11 @@ export default function Column({
         }`}
         style={{ minHeight: 120 }}
       >
-        {tickets.map((t) => (
-          <TicketCard key={t.id} ticket={t} onOpen={onOpen} />
-        ))}
+        <SortableContext items={tickets.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {tickets.map((t) => (
+            <TicketCard key={t.id} ticket={t} onOpen={onOpen} />
+          ))}
+        </SortableContext>
         {tickets.length === 0 && (
           <p className="px-1 py-6 text-center font-mono text-[10px] uppercase tracking-widest text-muted-fg">
             No tickets

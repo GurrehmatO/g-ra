@@ -12,6 +12,7 @@ const patchSchema = z.object({
   type: z.enum(["STORY", "BUG"]).optional(),
   assigneeId: z.string().nullable().optional(),
   statusId: z.string().optional(),
+  position: z.number().int().min(0).optional(),
   customValues: z
     .array(z.object({ customFieldId: z.string(), value: z.string().optional() }))
     .optional(),
@@ -108,7 +109,7 @@ export async function PATCH(
     );
   }
 
-  const { title, description, type, assigneeId, statusId, customValues } =
+  const { title, description, type, assigneeId, statusId, position, customValues } =
     parsed.data;
 
   const changes: {
@@ -199,6 +200,7 @@ export async function PATCH(
         ...(type !== undefined ? { type } : {}),
         ...(assigneeId !== undefined ? { assigneeId } : {}),
         ...(statusId !== undefined ? { statusId } : {}),
+        ...(position !== undefined ? { position } : {}),
       },
     });
 

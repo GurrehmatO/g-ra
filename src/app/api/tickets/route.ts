@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       customValues: { include: { customField: true } },
       _count: { select: { comments: true, images: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { position: "asc" },
   });
 
   const serialized = tickets.map((t) => ({
@@ -99,9 +99,9 @@ export async function POST(req: NextRequest) {
   const status = statusId
     ? await prisma.status.findFirst({ where: { id: statusId, projectId } })
     : await prisma.status.findFirst({
-        where: { projectId },
-        orderBy: { position: "asc" },
-      });
+      where: { projectId },
+      orderBy: { position: "asc" },
+    });
 
   if (!status) {
     return NextResponse.json(
@@ -109,6 +109,11 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const maxPosition = await prisma.ticket.aggregate({
+    where: { projectId, statusId: status.id },
+    _max: { position: true },
+  });
 
   if (assigneeId) {
     const assigneeMember = await prisma.projectMember.findUnique({
@@ -159,6 +164,7 @@ export async function POST(req: NextRequest) {
         creatorId: session.user.id,
         assigneeId,
         statusId: status.id,
+        position: (maxPosition._max.position ?? -1) + 1,
         customValues: {
           create: filteredValues.map((v) => ({
             customFieldId: v.customFieldId,
