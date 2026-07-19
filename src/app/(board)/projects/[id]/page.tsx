@@ -53,7 +53,7 @@ export default async function ProjectBoardPage({
 
   return (
     <div className="min-h-screen md:pl-16">
-      <TopNav />
+      <TopNav user={user} />
       <div className="border-b-2 border-ink bg-paper-2">
         <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-3 px-4 py-4">
           <div>

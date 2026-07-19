@@ -2,9 +2,10 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { signOut } from "@/lib/auth";
 import TopNavProfileMenu from "@/components/TopNavProfileMenu";
+import type { SessionUser } from "@/lib/session";
 
-export async function TopNav() {
-  const user = await getCurrentUser();
+export async function TopNav({ user }: { user?: SessionUser | null } = {}) {
+  if (!user) user = await getCurrentUser();
   const initials = (user?.name ?? user?.email ?? "G")
     .split(/[\s@.]+/)
     .filter(Boolean)

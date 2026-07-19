@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireUser, getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import NewProjectForm from "@/components/projects/NewProjectForm";
@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/fields";
 
 export default async function ProjectsPage() {
   const user = await requireUser();
-  const me = await getCurrentUser();
 
   const memberships = await prisma.projectMember.findMany({
     where: { userId: user.id },
@@ -24,7 +23,7 @@ export default async function ProjectsPage() {
 
   return (
     <div className="min-h-screen md:pl-16">
-      <TopNav />
+      <TopNav user={user} />
       <main className="mx-auto max-w-6xl space-y-8 p-4">
         <header className="flex items-center gap-3 border-b-2 border-ink pb-3">
           <span className="h-8 w-1.5 bg-accent" aria-hidden />
@@ -37,7 +36,7 @@ export default async function ProjectsPage() {
         </header>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {me?.role === "ADMIN" && (
+          {user?.role === "ADMIN" && (
             <Card>
               <NewProjectForm />
             </Card>

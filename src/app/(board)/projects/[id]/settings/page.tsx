@@ -25,7 +25,7 @@ export default async function ProjectSettingsPage({
 
   return (
     <div className="min-h-screen md:pl-16">
-      <TopNav />
+      <TopNav user={user} />
       <main className="mx-auto max-w-3xl p-4">
         <header className="mb-6 flex items-center gap-3 border-b-2 border-ink pb-3">
           <span className="h-8 w-1.5 bg-accent" aria-hidden />
