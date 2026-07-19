@@ -2,6 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button, Input, Label, Select, Textarea } from "@/components/ui/fields";
 
 type Status = { id?: string; name: string; color: string };
@@ -11,6 +26,57 @@ type Field = {
   type: "TEXT" | "NUMBER" | "SELECT" | "DATE";
   options?: string;
 };
+
+function SortableStatus({
+  status,
+  index,
+  onUpdate,
+  onRemove,
+}: {
+  status: Status;
+  index: number;
+  onUpdate: (patch: Partial<Status>) => void;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: index });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2"
+    >
+      <button
+        type="button"
+        className="flex h-10 w-6 shrink-0 cursor-grab items-center justify-center rounded text-muted hover:text-ink"
+        {...attributes}
+        {...listeners}
+      >
+        ⠿
+      </button>
+      <input
+        type="color"
+        value={status.color}
+        onChange={(e) => onUpdate({ color: e.target.value })}
+        className="h-10 w-10 rounded-sm border border-line bg-card"
+      />
+      <Input
+        value={status.name}
+        placeholder="Status name"
+        onChange={(e) => onUpdate({ name: e.target.value })}
+      />
+      <Button variant="ghost" type="button" onClick={onRemove}>
+        Remove
+      </Button>
+    </div>
+  );
+}
 
 export default function ProjectSettings({
   projectId,
@@ -32,6 +98,7 @@ export default function ProjectSettings({
   const [fields, setFields] = useState<Field[]>(initialFields);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   function addStatus() {
     setStatuses((s) => [...s, { name: "", color: "#64748b" }]);
@@ -41,6 +108,11 @@ export default function ProjectSettings({
   }
   function removeStatus(i: number) {
     setStatuses((s) => s.filter((_, idx) => idx !== i));
+  }
+  function onStatusDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over == null || active.id === over.id) return;
+    setStatuses((s) => arrayMove(s, active.id as number, over.id as number));
   }
 
   function addField() {
@@ -81,7 +153,7 @@ export default function ProjectSettings({
       setError(data.error ?? "Failed to save");
       return;
     }
-    router.refresh();
+    router.push(`/projects/${projectId}`);
   }
 
   return (
@@ -112,28 +184,19 @@ export default function ProjectSettings({
           </Button>
         </div>
         <div className="space-y-2">
-          {statuses.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                type="color"
-                value={s.color}
-                onChange={(e) => updateStatus(i, { color: e.target.value })}
-                className="h-10 w-10 rounded-sm border border-line bg-card"
-              />
-              <Input
-                value={s.name}
-                placeholder="Status name"
-                onChange={(e) => updateStatus(i, { name: e.target.value })}
-              />
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={() => removeStatus(i)}
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onStatusDragEnd}>
+            <SortableContext items={statuses.map((_, i) => i)} strategy={verticalListSortingStrategy}>
+              {statuses.map((s, i) => (
+                <SortableStatus
+                  key={s.id ?? `new-${i}`}
+                  status={s}
+                  index={i}
+                  onUpdate={(patch) => updateStatus(i, patch)}
+                  onRemove={() => removeStatus(i)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
 
