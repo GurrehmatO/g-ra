@@ -2,6 +2,7 @@ import { requireAdmin, getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import NewUserForm from "@/components/users/NewUserForm";
+import ResetPasswordButton from "@/components/users/ResetPasswordButton";
 import { Card } from "@/components/ui/fields";
 
 export default async function UsersPage() {
@@ -49,15 +50,21 @@ export default async function UsersPage() {
                     <div className="font-medium text-ink">{u.name ?? u.email}</div>
                     <div className="font-mono text-xs text-muted-fg">{u.email}</div>
                   </div>
-                  <span
-                    className={
-                      u.role === "ADMIN"
-                        ? "tag border-accent/40 bg-accent/10 text-accent-ink"
-                        : "tag border-line bg-paper text-muted-fg"
-                    }
-                  >
-                    {u.role}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        u.role === "ADMIN"
+                          ? "tag border-accent/40 bg-accent/10 text-accent-ink"
+                          : "tag border-line bg-paper text-muted-fg"
+                      }
+                    >
+                      {u.role}
+                    </span>
+                    <ResetPasswordButton
+                      userId={u.id}
+                      userName={u.name ?? u.email}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>
