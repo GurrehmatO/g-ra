@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { signOut } from "@/lib/auth";
+import TopNavProfileMenu from "@/components/TopNavProfileMenu";
 
 export async function TopNav() {
   const user = await getCurrentUser();
@@ -57,14 +58,10 @@ export async function TopNav() {
 
           {user && (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-ink bg-ink font-mono text-[10px] font-bold text-paper">
-                  {initials || "G"}
-                </span>
-                <span className="hidden text-sm font-medium text-ink-soft sm:block">
-                  {user.name ?? user.email}
-                </span>
-              </div>
+              <TopNavProfileMenu
+                userName={user.name ?? user.email ?? ""}
+                initials={initials}
+              />
               <form
                 action={async () => {
                   "use server";
