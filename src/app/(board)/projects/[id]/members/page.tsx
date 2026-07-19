@@ -24,6 +24,15 @@ export default async function ProjectMembersPage({
   });
   if (!project) notFound();
 
+  const memberIds = project.members.map((m) => m.user.id);
+
+  const allUsers = await prisma.user.findMany({
+    select: { id: true, name: true, email: true },
+    orderBy: { email: "asc" },
+  });
+
+  const availableUsers = allUsers.filter((u) => !memberIds.includes(u.id));
+
   const members = project.members.map((m) => ({
     id: m.user.id,
     name: m.user.name,
@@ -44,7 +53,7 @@ export default async function ProjectMembersPage({
             </h1>
           </div>
         </header>
-        <MembersPanel projectId={project.id} members={members} />
+        <MembersPanel projectId={project.id} members={members} availableUsers={availableUsers} />
       </main>
     </div>
   );
